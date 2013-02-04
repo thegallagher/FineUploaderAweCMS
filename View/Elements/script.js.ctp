@@ -1,19 +1,14 @@
 jQuery(function ($) {
-	$('#<?php echo $id; ?>Button').fineUploader(<?php echo json_encode($scriptOptions) ?>)
-	.on('complete', function(event, id, filename, responseJSON) {
-		$('#<?php echo $id; ?>').val(filename);
-		<?php if (isset($type)) : ?>
+	$('#<?php echo $id; ?>Button')
+		.fineUploader(<?php echo json_encode($scriptOptions) ?>)
+		.on('complete', function(event, id, filename, responseJSON) {
 			if (responseJSON.preview) {
-				<?php if ($type == 'image') : ?>
-					$('#<?php echo $id; ?>Preview')
-						.attr('href', responseJSON.preview)
-						.find('img').attr('src', responseJSON.preview);
-				<?php elseif ($type == 'file') : ?>
-					$('#<?php echo $id; ?>Preview')
-						.attr('href', responseJSON.preview)
-						.html(filename);
-				<?php endif; ?>
+				$('#<?php echo $id; ?>Preview').append(responseJSON.preview);
 			}
-		<?php endif; ?>
+		});
+	
+	$('#<?php echo $id; ?>Preview').on('click', 'a.remove', function() {
+		$(this).parent().remove();
+		return false;
 	});
 });

@@ -50,7 +50,9 @@ class FineUploaderHelper extends AppHelper {
 	}
 
 	public function input($field, $options = array()) {
+		//$this->setEntity();
 		$options = $this->_init($field, $options);
+		$options = $this->_initInputField($field, $options);
 		
 		if (!isset($options['div'])) {
 			$options['div'] = 'input uploader';
@@ -63,32 +65,55 @@ class FineUploaderHelper extends AppHelper {
 			$options['scriptOptions'] = $this->settings['scriptOptions'];
 		}
 		
-		$html = isset($options['preview']) ? $options['preview'] : '';
-		$html .= $this->Html->div('uploader-button', '', array('id' => $options['id'] . 'Button'));
+		$isMultiple = isset($options['multiple']) && $options['multiple'];
+		$options['scriptOptions']['multiple'] = $isMultiple;
+		
+		if ($isMultiple) {
+			$options['scriptOptions']['request']['params']['name'] = $options['name'] . '[]';
+		} else {
+			$options['scriptOptions']['request']['params']['name'] = $options['name'];
+		}
 		$script = $this->Html->scriptBlock($this->_View->element('FineUploader.script.js', $options), array('inline' => $this->_View->request->is('ajax')));
+		unset($options['scriptOptions']);
 		
-		$options['after'] = isset($options['after']) ? $html . $options['after'] : $html;
-		$options['after'] .= $script;
+		$previews = '';
+		$element = 'FineUploader.' . $options['type'];
+		if ($isMultiple) {
+			$options['value'] = (array) $options['value'];
+			foreach ($options['value'] as $value) {
+				$previews .= $this->_View->element($element, array('name' => $options['name'] . '[]', 'value' => $value));
+			}
+		} else {
+			if (is_array($options['value'])) {
+				$options['value'] = $options['value'][0];
+			}
+			$previews .= $this->_View->element($element, array('name' => $options['name'], 'value' => $options['value']));
+		}
 		
-		$options['type'] = 'text';
-		unset($options['preview'], $options['scriptOptions']);
-		return $this->Form->input($field, $options);
+		$html = $this->Form->label($field);
+		$html .= $this->Html->div(null, $previews, array('id' => $options['id'] . 'Preview'));
+		$html .= $this->Html->div('uploader-button', '', array('id' => $options['id'] . 'Button'));
+		$html .= $script;
+		
+		return $this->Html->div($options['div'], $html);
 	}
 
 	public function image($field, $options = array()) {
 		$options = $this->_init($field, $options);
-		$image = empty($options['value']) ? 'data://image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' : 'upload/' . $options['value'];
-		$link = empty($options['value']) ? '#' : IMAGES_URL . '/' . $image;
-		$options['preview'] = $this->_previewLink($this->Html->image($image), $link, $options);
+		//$image = empty($options['value']) ? 'data://image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' : 'upload/' . $options['value'];
+		//$link = empty($options['value']) ? '#' : '/img/' . $image;
+		//$options['preview'] = $this->_previewLink($this->Html->image($image), $link, $options);
 		$options['type'] = 'image';
+		$options['scriptOptions']['request']['endpoint'] = $this->Html->url(array('plugin' => 'fine_uploader', 'controller' => 'files', 'action' => 'upload', 'ext' => 'json'));
 		return $this->input($field, $options);
 	}
 
-	public function file($field, $options = array()) {
+	public function document($field, $options = array()) {
 		$options = $this->_init($field, $options);
-		$link = empty($options['value']) ? '#' : '/files/upload/' . $image;
-		$options['preview'] = $this->_previewLink($options['value'], $link, $options);
-		$options['type'] = 'file';
+		//$link = empty($options['value']) ? '#' : '/files/upload/' . $options['value'];
+		//$options['preview'] = $this->_previewLink($options['value'], $link, $options);
+		$options['type'] = 'document';
+		$options['scriptOptions']['request']['endpoint'] = $this->Html->url(array('plugin' => 'fine_uploader', 'controller' => 'files', 'action' => 'upload', 'document', 'ext' => 'json'));
 		return $this->input($field, $options);
 	}
 	
@@ -98,6 +123,7 @@ class FineUploaderHelper extends AppHelper {
 	
 	protected function _init($field, $options) {
 		$this->Form->setEntity($field);
+		$options = $this->Form->_name($options);
 		$options = $this->Form->value($options);
 		$options = $this->Form->domId($options);
 		return $options;
