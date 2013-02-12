@@ -83,7 +83,7 @@ class FineUploaderHelper extends AppHelper {
 			foreach ($options['value'] as $value) {
 				$previews .= $this->_View->element($element, array('name' => $options['name'] . '[]', 'value' => $value));
 			}
-		} else {
+		} elseif (!empty($options['value'])) {
 			if (is_array($options['value'])) {
 				$options['value'] = $options['value'][0];
 			}
