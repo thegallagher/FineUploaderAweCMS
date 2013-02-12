@@ -26,7 +26,7 @@ class FilesController extends AppController {
 			$result['type'] = $type;
 			$result['previewOptions'] = array(
 				'name' => $this->request->query['name'],
-				'value' => $this->request->query['file'],
+				'value' => $uploader->getUploadName(),
 			);
 			$this->set($result);
 		} else {
