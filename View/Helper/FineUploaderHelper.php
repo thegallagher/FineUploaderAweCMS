@@ -5,7 +5,7 @@ App::uses('AppHelper', 'View/Helper');
 class FineUploaderHelper extends AppHelper {
 
 	public $helpers = array('Html', 'Form');
-	protected static $_initilized = false;
+	protected static $_initialized = false;
 	
 	public $defaults = array(
 		'scriptOptions' => array(
@@ -32,12 +32,12 @@ class FineUploaderHelper extends AppHelper {
 	}
 
 	public function beforeRender($viewFile) {
-		if (!self::$_initilized) {
+		if (!self::$_initialized) {
 			$this->Html->script('FineUploader.jquery.fineuploader-3.1.1.min', array('inline' => false));
 			if ($this->settings['css']) {
 				$this->Html->css($this->settings['css'], null, array('inline' => false));
 			}
-			self::$_initilized = true;
+			self::$_initialized = true;
 		
 			if (isset($this->settings['template'])) {
 				$this->settings['scriptOptions']['template'] = $this->_View->element($this->settings['template']);
@@ -89,10 +89,23 @@ class FineUploaderHelper extends AppHelper {
 			}
 			$previews .= $this->_View->element($element, array('name' => $options['name'], 'value' => $options['value']));
 		}
-		
-		$html = $this->Form->label($field);
-		$html .= $this->Html->div(null, $previews, array('id' => $options['id'] . 'Preview'));
-		$html .= $this->Html->div('uploader-button', '', array('id' => $options['id'] . 'Button'));
+
+		$labelOptions = array();
+		if (isset($options['label'])) {
+			$labelOptions = $options['label'];
+		}
+		$html = $this->Form->label($field, null, $labelOptions);
+
+		$control = $this->Html->div(null, $previews, array('id' => $options['id'] . 'Preview'));
+		$control .= $this->Html->div('uploader-button', '', array('id' => $options['id'] . 'Button'));
+
+		$class = null;
+		if (isset($options['class'])) {
+			$class = $options['class'];
+			unset($options['class']);
+		}
+		$html .= $this->Html->div($class, $control);
+
 		$html .= $script;
 		
 		return $this->Html->div($options['div'], $html);
