@@ -1,9 +1,12 @@
 jQuery(function ($) {
 	var template = Awecms.getTemplate('#fineuploader-<?php echo $type; ?>');
-	var data = {
-		'file': $('#<?php echo $id; ?>Input').val()
-	};
-	$('#<?php echo $id; ?>Preview').html(template(data));
+	var value = $('#<?php echo $id; ?>Input').val();
+	if (value) {
+		var data = {
+			'file': $('#<?php echo $id; ?>Input').val()
+		};
+		$('#<?php echo $id; ?>Preview').html(template(data));
+	}
 
 	$('#<?php echo $id; ?>Button')
 		.fineUploader(<?php echo json_encode($scriptOptions) ?>)
