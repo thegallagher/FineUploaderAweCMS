@@ -1,14 +1,22 @@
 jQuery(function ($) {
+	var template = Awecms.getTemplate('#fineuploader-<?php echo $type; ?>');
+	var data = {
+		'file': $('#<?php echo $id; ?>Input').val()
+	};
+	$('#<?php echo $id; ?>Preview').html(template(data));
+
 	$('#<?php echo $id; ?>Button')
 		.fineUploader(<?php echo json_encode($scriptOptions) ?>)
 		.on('complete', function(event, id, filename, responseJSON) {
-			if (responseJSON.preview) {
-				$('#<?php echo $id; ?>Preview').append(responseJSON.preview);
+			if (responseJSON.success) {
+				$('#<?php echo $id; ?>Input').val(responseJSON.file);
+				$('#<?php echo $id; ?>Preview').html(template(responseJSON));
 			}
 		});
 	
 	$('#<?php echo $id; ?>Preview').on('click', 'a.remove', function() {
-		$(this).parent().remove();
+		$('#<?php echo $id; ?>Input').val('');
+		$(this).parents('.uploader-file').first().remove();
 		return false;
 	});
 });

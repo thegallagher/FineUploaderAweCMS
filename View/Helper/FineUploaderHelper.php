@@ -4,7 +4,7 @@ App::uses('AppHelper', 'View/Helper');
 
 class FineUploaderHelper extends AppHelper {
 
-	public $helpers = array('Html', 'Form');
+	public $helpers = array('Html', 'Form', 'Awecms.Handlebars');
 	protected static $_initialized = false;
 	
 	public $defaults = array(
@@ -34,6 +34,8 @@ class FineUploaderHelper extends AppHelper {
 	public function beforeRender($viewFile) {
 		if (!self::$_initialized) {
 			$this->Html->script('FineUploader.jquery.fineuploader-3.1.1.min', array('inline' => false));
+			$this->Handlebars->template('fineuploader-document', 'FineUploader.document', array('inline' => false));
+			$this->Handlebars->template('fineuploader-image', 'FineUploader.image', array('inline' => false));
 			if ($this->settings['css']) {
 				$this->Html->css($this->settings['css'], null, array('inline' => false));
 			}
@@ -76,9 +78,9 @@ class FineUploaderHelper extends AppHelper {
 		$script = $this->Html->scriptBlock($this->_View->element('FineUploader.script.js', $options), array('inline' => $this->_View->request->is('ajax')));
 		unset($options['scriptOptions']);
 		
-		$previews = '';
-		$element = 'FineUploader.' . $options['type'];
-		if ($isMultiple) {
+		$previews = $this->Form->hidden($field, array('id' => $options['id'] . 'Input'));
+		//$element = 'FineUploader.' . $options['type'];
+		/*if ($isMultiple) {
 			$options['value'] = (array) $options['value'];
 			foreach ($options['value'] as $value) {
 				$previews .= $this->_View->element($element, array('name' => $options['name'] . '[]', 'value' => $value));
@@ -88,15 +90,16 @@ class FineUploaderHelper extends AppHelper {
 				$options['value'] = $options['value'][0];
 			}
 			$previews .= $this->_View->element($element, array('name' => $options['name'], 'value' => $options['value']));
-		}
+		}*/
+
 
 		$labelOptions = array();
 		if (isset($options['label'])) {
 			$labelOptions = $options['label'];
 		}
 		$html = $this->Form->label($field, null, $labelOptions);
-
-		$control = $this->Html->div(null, $previews, array('id' => $options['id'] . 'Preview'));
+		$control = $previews;
+		$control .= $this->Html->div(null, '', array('id' => $options['id'] . 'Preview'));
 		$control .= $this->Html->div('uploader-button', '', array('id' => $options['id'] . 'Button'));
 
 		$class = null;

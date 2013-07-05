@@ -24,13 +24,11 @@ class FilesController extends AppController {
 		$result = $uploader->handleUpload($uploadPath);
 		if (!empty($result['success'])) {
 			$result['type'] = $type;
-			$result['previewOptions'] = array(
-				'name' => $this->request->query['name'],
-				'value' => $uploader->getUploadName(),
-			);
+			$result['file'] = $uploader->getUploadName();
+			$this->set('_serialize', array('success', 'file', 'type'));
 			$this->set($result);
 		} else {
-			$this->set('_serialize', array('error'));
+			$this->set('_serialize', array('success', 'error'));
 			$this->set($result);
 		}
 	}
