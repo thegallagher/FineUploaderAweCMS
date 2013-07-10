@@ -1,33 +1,58 @@
 <?php
 
 App::uses('AppController', 'Controller');
+App::uses('AwecmsUploader', 'Awecms.Lib');
 
 class FilesController extends AppController {
 
 	public $components = array('RequestHandler');
 
-	public function admin_upload($type = 'image') {
-		if ($type == 'image') {
-			$allowedExts = array('jpg', 'jpeg', 'png', 'gif', 'bmp');
-			$uploadPath = WWW_ROOT . '/img/upload/';
-		} else if ($type == 'document') {
-			$allowedExts = array('pdf', 'doc', 'docx', 'txt', 'odt', 'rtf');
-			$uploadPath = WWW_ROOT . '/file/upload/';
+	public function beforeFilter() {
+		parent::beforeFilter();
+
+		$isAllowed = false;
+		if ($this->Components->loaded('Auth')) {
+			$isAllowed = $this->Auth->isAuthorized();
 		} else {
-			$this->set('_serialize', array('success', 'error', 'preventRetry'));
-			$this->set(array('success' => false, 'preventRetry' => true, 'error' => 'Type must be either \'image\' or \'document\''));
-			return;
+			$eventName = 'FineUploader.is_authorized';
+			$globalListeners = CakeEventManager::instance()->listeners($eventName);
+			$objectListeners = $this->getEventManager()->listeners($eventName);
+			if (count($globalListeners) > 0 || count($objectListeners) > 0) {
+				$event = new CakeEvent($eventName, $this, true);
+				$this->getEventManager()->dispatch($event);
+				$isAllowed = !$event->isStopped() && $event->result;
+			}
 		}
-		
-		App::import('Vendor', 'FineUploader.FineUploader/php');
-		$uploader = new qqFileUploader($allowedExts, null, 'file');
-		$result = $uploader->handleUpload($uploadPath);
-		if (!empty($result['success'])) {
-			$result['type'] = $type;
-			$result['file'] = $uploader->getUploadName();
+
+		if (!$isAllowed) {
+			$result = array(
+				'success' => false,
+				'error' => __d('fine_uploader', 'You are not logged in. Please login and try again.'),
+			);
+			$this->set('_serialize', array('success', 'error'));
+			$this->set($result);
+			$this->RequestHandler->renderAs($this, 'json');
+			echo $this->render();
+			$this->_stop();
+			return false;
+		}
+	}
+
+	public function admin_upload($type = 'image') {
+		$uploader = new AwecmsUploader($this->request, compact('type'));
+		if ($uploader->upload('file', 'query')) {
+			$result = array(
+				'success' => true,
+				'type' => $type,
+				'file' => $uploader->getUploadedFileName()
+			);
 			$this->set('_serialize', array('success', 'file', 'type'));
 			$this->set($result);
 		} else {
+			$result = array(
+				'success' => false,
+				'error' => $uploader->getLastErrorMessage(),
+			);
 			$this->set('_serialize', array('success', 'error'));
 			$this->set($result);
 		}

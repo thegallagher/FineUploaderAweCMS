@@ -12,6 +12,9 @@ class FineUploaderHelper extends AppHelper {
 			'request' => array(
 				'endpoint' => array('plugin' => 'fine_uploader', 'controller' => 'files', 'action' => 'upload', 'ext' => 'json'),
 				'inputName' => 'file'
+			),
+			'failedUploadTextDisplay' => array(
+				'mode' => 'custom',
 			)
 		)
 	);
